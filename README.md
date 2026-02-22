@@ -1,17 +1,15 @@
 # Ecommerce Resolution Agent
 
-A production-oriented multi-agent system for resolving ecommerce customer issues with deterministic policies, safe tool execution, auditability, and offline evaluation.
+Production-oriented, simulation-first multi-agent system for ecommerce support resolution with:
 
-## Phase 0 Status
-
-This repository currently contains the bootstrap scaffolding for:
-
-- Python package (`src/` layout)
-- FastAPI API skeleton (`/healthz`)
-- CLI skeleton (`ecom-resolver`)
-- Ruff, MyPy, Pytest configuration
-- GitHub Actions CI (lint, typecheck, tests)
-- Docker Compose services for Postgres and Redis (for later phases)
+- LangGraph orchestration (intake through risk) plus deterministic post-risk pipeline stages
+- Strict tool schemas and offline mock adapters
+- Deterministic policy engine (versioned JSON)
+- Risk scoring, approvals, action caps, and idempotency
+- QA verification + prompt injection defense
+- Reporting, ticket updates, and audit bundle artifacts
+- Offline evaluation harness with regression gating
+- CLI + FastAPI demo interfaces
 
 ## Quickstart
 
@@ -19,7 +17,7 @@ This repository currently contains the bootstrap scaffolding for:
 
 - Python 3.11+
 - [`uv`](https://docs.astral.sh/uv/)
-- Optional for later phases: Docker (Postgres + Redis local stack)
+- Optional: Docker (Postgres/Redis local stack)
 
 ### Install
 
@@ -33,35 +31,75 @@ make install
 make lint
 make typecheck
 make test
+make eval
 ```
 
-### CLI help
+## One-Command Demo (Delivered But Not Received)
 
 ```bash
-uv run python -m ecom_resolution_agent.cli --help
+make demo_delivered_not_received
 ```
 
-### Run API (health endpoint)
+This runs the end-to-end simulation pipeline and prints a JSON summary including the `report.md` path.
+
+Artifacts are written to:
+
+- `artifacts/runs/<run_id>/run_config.json`
+- `artifacts/runs/<run_id>/redacted_audit.jsonl`
+- `artifacts/runs/<run_id>/decision.json`
+- `artifacts/runs/<run_id>/report.md`
+
+## CLI
+
+### Run a case
+
+```bash
+uv run ecom-resolver run-case --ticket-file path/to/ticket.json --simulation
+```
+
+### Run a single step
+
+```bash
+uv run ecom-resolver run-step --state intake --input path/to/state.json
+```
+
+### Run evaluation harness
+
+```bash
+uv run ecom-resolver eval --output-dir artifacts/eval_cli
+```
+
+## API
+
+### Run API server
 
 ```bash
 uv run ecom-resolver api --host 127.0.0.1 --port 8000
 ```
 
-Then visit `http://127.0.0.1:8000/healthz`.
+### Key endpoints
 
-## Local infrastructure (later phases)
+- `GET /healthz`
+- `POST /v1/cases/run`
+- `GET /v1/cases/{run_id}`
+- `GET /v1/cases/{run_id}/artifacts`
+- `POST /v1/evals/run`
+- `POST /v1/approvals/{approval_task_id}/grant` (demo stub)
+- `POST /v1/approvals/{approval_task_id}/reject` (demo stub)
 
-Docker is not required for Phase 0. When available, start local Postgres + Redis with:
+## CI
 
-```bash
-docker compose up -d
-```
+GitHub Actions runs:
 
-## High-Level Architecture (target)
+- `lint`
+- `typecheck`
+- `unit_tests`
+- `integration_mocks`
+- `eval_regression`
+- `db_migration_smoke`
 
-- `Triage Agent` -> classifies issues and requests missing data
-- `Policy Agent` -> deterministic policy evaluation from versioned JSON rules
-- `Risk Agent` -> fraud/risk scoring and approval gating
-- `Actions Agent` -> simulation-first action execution with idempotency + caps
-- `QA Agent` -> evidence/policy verification and prompt injection defense
-- `Report Agent` -> customer response + internal audit/report artifacts
+## Notes
+
+- Real actions remain disabled by default (`ENABLE_REAL_ACTIONS=false`).
+- All local demos and evaluations run in simulation mode using mock tool adapters.
+- Redaction is applied to audit logs/tool calls to reduce PII leakage risk.
