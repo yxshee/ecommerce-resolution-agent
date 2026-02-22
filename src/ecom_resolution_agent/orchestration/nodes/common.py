@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from ecom_resolution_agent.actions.caps import ActionCapsService
+from ecom_resolution_agent.agents.risk import DeterministicRiskAgent
 from ecom_resolution_agent.agents.triage import DeterministicTriageAgent
+from ecom_resolution_agent.approvals.service import ApprovalService
 from ecom_resolution_agent.orchestration.state import CaseState
 from ecom_resolution_agent.policy.service import PolicyService
 from ecom_resolution_agent.schemas.tool_envelopes import ToolCallContext
@@ -15,6 +18,9 @@ class OrchestrationDeps:
     tool_executor: ToolExecutor
     policy_service: PolicyService
     triage_agent: DeterministicTriageAgent
+    risk_agent: DeterministicRiskAgent
+    approval_service: ApprovalService
+    caps_service: ActionCapsService
     default_policy_version: str = "v1_0_0"
 
 

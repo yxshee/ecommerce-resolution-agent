@@ -92,3 +92,20 @@ class Action(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
+
+
+class ApprovalTask(Base):
+    __tablename__ = "approval_tasks"
+
+    approval_task_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    run_id: Mapped[str] = mapped_column(String(64), index=True)
+    ticket_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    action_type: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    requested_reason: Mapped[str] = mapped_column(Text)
+    requested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolver_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    token_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
