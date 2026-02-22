@@ -1,0 +1,21 @@
+.git/
+.github/
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+artifacts/
+htmlcov/
+build/
+dist/
+*.egg-info/
+docs/
+migrations/
+docker-compose.yml
+
+# Exclude most tests, but keep the mock fixture data used by the simulation pipeline.
+tests/**
+!tests/fixtures/
+!tests/fixtures/mock_data/
+!tests/fixtures/mock_data/**
