@@ -1,5 +1,6 @@
 {
   "version": "v1_0_0",
-  "status": "placeholder",
-  "phase": 0
+  "status": "active",
+  "effective_date": "2026-02-22",
+  "rules_sha256": "a46fedb08808d2dede1c87270d24d4ca159b7aeeb823f291e8d079382f1a2c3b"
 }
