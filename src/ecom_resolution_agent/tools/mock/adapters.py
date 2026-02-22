@@ -185,6 +185,10 @@ class MockPaymentsTools:
             "order_id": request.order_id,
             "idempotency_key": request.idempotency_key,
         }
+        # Deterministic failure mode for timeout reconciliation tests:
+        # persist the refund, then raise a timeout-like error with the created refund id.
+        if request.idempotency_key.startswith("idem_timeout_"):
+            raise TimeoutError(f"timeout_after_creation:{refund_id}")
         return IssueRefundResponse(
             refund_id=refund_id,
             status=status,
@@ -200,7 +204,14 @@ class MockPaymentsTools:
                 amount_cents=None,
                 currency=None,
             )
-        return GetRefundStatusResponse.model_validate(refund)
+        return GetRefundStatusResponse(
+            refund_id=str(refund["refund_id"]),
+            status=str(refund["status"]),
+            amount_cents=int(refund["amount_cents"])
+            if refund.get("amount_cents") is not None
+            else None,
+            currency=str(refund["currency"]) if refund.get("currency") is not None else None,
+        )
 
 
 class MockInventoryTools:
