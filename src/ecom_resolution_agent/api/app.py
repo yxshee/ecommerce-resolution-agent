@@ -6,8 +6,10 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
+from ecom_resolution_agent.api.frontend import render_dashboard_html
 from ecom_resolution_agent.audit import RunArtifactWriter
 from ecom_resolution_agent.config import get_settings
 from ecom_resolution_agent.eval import (
@@ -53,8 +55,16 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
-    @app.get("/", tags=["system"])
-    def root() -> dict[str, Any]:
+    @app.get("/", tags=["system"], response_class=HTMLResponse)
+    def root() -> str:
+        return render_dashboard_html()
+
+    @app.get("/ui", tags=["system"], response_class=HTMLResponse)
+    def ui() -> str:
+        return render_dashboard_html()
+
+    @app.get("/v1/meta", tags=["system"])
+    def metadata() -> dict[str, Any]:
         return {
             "name": "ecommerce-resolution-agent",
             "status": "ok",

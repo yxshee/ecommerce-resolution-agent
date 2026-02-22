@@ -7,9 +7,21 @@ from fastapi.testclient import TestClient
 from ecom_resolution_agent.api.app import app
 
 
-def test_root_returns_service_metadata() -> None:
+def test_root_returns_dashboard_html() -> None:
     client = TestClient(app)
     response = client.get("/")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    body = response.text
+    assert "Ecommerce Resolution Agent" in body
+    assert "Run Delivered-Not-Received Demo" in body
+    assert "/v1/cases/run" in body
+
+
+def test_meta_returns_service_metadata() -> None:
+    client = TestClient(app)
+    response = client.get("/v1/meta")
 
     assert response.status_code == 200
     payload = response.json()
