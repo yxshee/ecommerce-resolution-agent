@@ -1,0 +1,131 @@
+{
+  "customers": {
+    "cus_001": {
+      "customer_id": "cus_001",
+      "email": "alice@example.com",
+      "phone": "+1 415 555 0101",
+      "default_shipping_address": {
+        "line1": "123 Main Street",
+        "city": "San Francisco",
+        "region": "CA",
+        "postal_code": "94105",
+        "country": "US"
+      },
+      "created_at": "2024-01-15T10:00:00Z",
+      "risk_flags": [],
+      "tags": ["vip"]
+    }
+  },
+  "orders": {
+    "ord_001": {
+      "order_id": "ord_001",
+      "customer_id": "cus_001",
+      "status": "delivered",
+      "issue_type_hint": "delivered_not_received",
+      "total": {
+        "amount_cents": 12999,
+        "currency": "USD"
+      },
+      "shipping_address": {
+        "name": "Alice Example",
+        "line1": "123 Main Street",
+        "city": "San Francisco",
+        "region": "CA",
+        "postal_code": "94105",
+        "country": "US"
+      },
+      "shipping_tracking_number": "1ZMOCK1234567890"
+    }
+  },
+  "order_items": {
+    "ord_001": [
+      {
+        "item_id": "item_001",
+        "sku": "SKU-RED-SHOE-8",
+        "title": "Red Running Shoe",
+        "quantity": 1,
+        "unit_price_cents": 12999,
+        "currency": "USD",
+        "shippable": true
+      }
+    ]
+  },
+  "fulfillment_statuses": {
+    "ord_001": {
+      "order_id": "ord_001",
+      "status": "delivered",
+      "shipped": true,
+      "delivered": true,
+      "tracking_number": "1ZMOCK1234567890",
+      "carrier": "UPS"
+    }
+  },
+  "tracking_events": {
+    "1ZMOCK1234567890": {
+      "tracking_number": "1ZMOCK1234567890",
+      "carrier": "UPS",
+      "events": [
+        {
+          "event_id": "trk_evt_001",
+          "status": "out_for_delivery",
+          "description": "Out for delivery",
+          "location": "San Francisco, CA",
+          "timestamp": "2026-02-20T15:00:00Z"
+        },
+        {
+          "event_id": "trk_evt_002",
+          "status": "delivered",
+          "description": "Delivered at front door",
+          "location": "San Francisco, CA",
+          "timestamp": "2026-02-20T19:12:00Z"
+        }
+      ]
+    }
+  },
+  "delivery_proofs": {
+    "ord_001": {
+      "order_id": "ord_001",
+      "tracking_number": "1ZMOCK1234567890",
+      "available": true,
+      "proof_type": "photo",
+      "delivered_at": "2026-02-20T19:12:00Z",
+      "proof_reference": "proof_img_001"
+    }
+  },
+  "inventory": {
+    "SKU-RED-SHOE-8": {
+      "available_quantity": 12
+    }
+  },
+  "kb": {
+    "policy_versions": {
+      "delivered_not_received": "v1_0_0",
+      "order_status": "v1_0_0",
+      "cancel_order": "v1_0_0"
+    },
+    "policy_rules": {
+      "v1_0_0": {
+        "allowed_actions": ["replacement_reship", "refund_partial", "refund_full", "escalate_human"],
+        "constraints": {
+          "refund_full": {"requires": ["delivery_proof", "risk_score"]}
+        }
+      }
+    },
+    "articles": [
+      {
+        "article_id": "kb_001",
+        "title": "Delivered but not received handling",
+        "snippet": "Verify customer identity, fetch tracking and delivery proof, then apply policy."
+      },
+      {
+        "article_id": "kb_002",
+        "title": "Order status request",
+        "snippet": "Use order and fulfillment status tools to answer shipment timing questions."
+      }
+    ]
+  },
+  "tickets": {},
+  "ticket_notes": {},
+  "returns": {},
+  "refunds": {}
+}
