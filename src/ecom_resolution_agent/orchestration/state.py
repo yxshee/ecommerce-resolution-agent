@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import Field
 
-from ecom_resolution_agent.schemas.agent_outputs import PolicyOutput, TriageOutput
+from ecom_resolution_agent.schemas.agent_outputs import PolicyOutput, RiskOutput, TriageOutput
 from ecom_resolution_agent.schemas.base import StrictModel
 
 ALL_STATES = [
@@ -38,6 +38,8 @@ class CaseState(StrictModel):
     order_id: str | None = None
     issue_type: str | None = None
     policy_version: str | None = None
+    approval_task_id: str | None = None
+    approval_token: str | None = None
 
     verification_passed: bool = False
     verification_result: dict[str, Any] | None = None
@@ -45,6 +47,7 @@ class CaseState(StrictModel):
 
     triage_output: TriageOutput | None = None
     policy_output: PolicyOutput | None = None
+    risk_output: RiskOutput | None = None
 
     facts: dict[str, Any] = Field(default_factory=dict)
     tool_results: dict[str, dict[str, Any]] = Field(default_factory=dict)

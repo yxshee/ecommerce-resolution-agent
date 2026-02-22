@@ -61,5 +61,5 @@ def run_policy_lookup(
     )
     state.policy_output = policy_output
     state.status = "policy_evaluated"
-    state.next_state = END_ROUTE
+    state.next_state = "risk_assessment"
     return dump_state(state)
