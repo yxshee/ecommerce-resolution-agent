@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from ecom_resolution_agent.orchestration.state import CaseState
 from ecom_resolution_agent.schemas.agent_outputs import ResolutionDecision
+
+if TYPE_CHECKING:
+    from ecom_resolution_agent.orchestration.state import CaseState
 
 
 @dataclass
@@ -77,7 +80,12 @@ class DeterministicDecisionAgent:
             ),
         )
 
-    def _escalation_decision(self, *, state: CaseState, rationale: str) -> ResolutionDecision:
+    def _escalation_decision(
+        self,
+        *,
+        state: CaseState,
+        rationale: str,
+    ) -> ResolutionDecision:
         return ResolutionDecision(
             selected_action="escalate_human",
             rationale=rationale,
