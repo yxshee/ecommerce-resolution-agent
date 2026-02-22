@@ -53,6 +53,18 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
+    @app.get("/", tags=["system"])
+    def root() -> dict[str, Any]:
+        return {
+            "name": "ecommerce-resolution-agent",
+            "status": "ok",
+            "mode": "simulation-first",
+            "docs_url": "/docs",
+            "health_url": "/healthz",
+            "run_case_endpoint": "/v1/cases/run",
+            "eval_endpoint": "/v1/evals/run",
+        }
+
     @app.get("/healthz", tags=["system"])
     def healthz() -> dict[str, str | bool]:
         return {
