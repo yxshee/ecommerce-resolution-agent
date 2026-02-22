@@ -1,5 +1,11 @@
 from ecom_resolution_agent.agents.actions import DeterministicActionsAgent
+from ecom_resolution_agent.agents.qa import DeterministicQaAgent
 from ecom_resolution_agent.agents.risk import DeterministicRiskAgent
 from ecom_resolution_agent.agents.triage import DeterministicTriageAgent
 
-__all__ = ["DeterministicActionsAgent", "DeterministicRiskAgent", "DeterministicTriageAgent"]
+__all__ = [
+    "DeterministicActionsAgent",
+    "DeterministicQaAgent",
+    "DeterministicRiskAgent",
+    "DeterministicTriageAgent",
+]
