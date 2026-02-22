@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+from ecom_resolution_agent.audit import RunArtifactWriter
 from ecom_resolution_agent.config import get_settings
 from ecom_resolution_agent.eval import (
     EvaluationHarness,
@@ -33,6 +35,15 @@ class EvalRunRequest(BaseModel):
     write_artifacts: bool = False
 
 
+def _artifacts_root_dir() -> Path:
+    base = os.environ.get("ECOM_ARTIFACTS_DIR")
+    if base:
+        return Path(base)
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/ecom_resolution_agent/artifacts")
+    return Path("artifacts")
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
@@ -57,7 +68,9 @@ def create_app() -> FastAPI:
                 status_code=400,
                 detail="Only simulation mode is enabled in this environment.",
             )
-        pipeline = build_simulation_pipeline()
+        pipeline = build_simulation_pipeline(
+            artifact_writer=RunArtifactWriter(base_dir=_artifacts_root_dir() / "runs")
+        )
         result = pipeline.run_case(
             ticket=request.ticket,
             simulation_mode=request.simulation,
@@ -80,7 +93,7 @@ def create_app() -> FastAPI:
 
     @app.get("/v1/cases/{run_id}", tags=["cases"])
     def get_case(run_id: str) -> dict[str, Any]:
-        run_dir = Path("artifacts/runs") / run_id
+        run_dir = _artifacts_root_dir() / "runs" / run_id
         if not run_dir.exists():
             raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
         run_config = _read_json_if_exists(run_dir / "run_config.json")
@@ -97,7 +110,7 @@ def create_app() -> FastAPI:
 
     @app.get("/v1/cases/{run_id}/artifacts", tags=["cases"])
     def get_case_artifacts(run_id: str) -> dict[str, Any]:
-        run_dir = Path("artifacts/runs") / run_id
+        run_dir = _artifacts_root_dir() / "runs" / run_id
         if not run_dir.exists():
             raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
         files = sorted(
@@ -159,6 +172,8 @@ def create_app() -> FastAPI:
         failures = enforce_regression_thresholds(summary=summary, thresholds=thresholds)
 
         output_dir = Path(request.output_dir)
+        if request.output_dir == "artifacts/eval_api" and os.environ.get("VERCEL"):
+            output_dir = Path("/tmp/ecom_resolution_agent/eval_api")
         output_dir.mkdir(parents=True, exist_ok=True)
         results_path = output_dir / "evaluation_results.json"
         payload = summary.to_json()
