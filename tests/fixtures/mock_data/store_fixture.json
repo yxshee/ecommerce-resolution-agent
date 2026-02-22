@@ -13,7 +13,9 @@
       },
       "created_at": "2024-01-15T10:00:00Z",
       "risk_flags": [],
-      "tags": ["vip"]
+      "tags": [
+        "vip"
+      ]
     }
   },
   "orders": {
@@ -35,6 +37,44 @@
         "country": "US"
       },
       "shipping_tracking_number": "1ZMOCK1234567890"
+    },
+    "ord_002": {
+      "order_id": "ord_002",
+      "customer_id": "cus_001",
+      "status": "processing",
+      "issue_type_hint": "cancel_order",
+      "total": {
+        "amount_cents": 4999,
+        "currency": "USD"
+      },
+      "shipping_address": {
+        "name": "Alice Example",
+        "line1": "123 Main Street",
+        "city": "San Francisco",
+        "region": "CA",
+        "postal_code": "94105",
+        "country": "US"
+      },
+      "shipping_tracking_number": null
+    },
+    "ord_003": {
+      "order_id": "ord_003",
+      "customer_id": "cus_001",
+      "status": "delivered",
+      "issue_type_hint": "return_initiation",
+      "total": {
+        "amount_cents": 7999,
+        "currency": "USD"
+      },
+      "shipping_address": {
+        "name": "Alice Example",
+        "line1": "123 Main Street",
+        "city": "San Francisco",
+        "region": "CA",
+        "postal_code": "94105",
+        "country": "US"
+      },
+      "shipping_tracking_number": "1ZMOCK3333333333"
     }
   },
   "order_items": {
@@ -48,6 +88,28 @@
         "currency": "USD",
         "shippable": true
       }
+    ],
+    "ord_002": [
+      {
+        "item_id": "item_002",
+        "sku": "SKU-BLUE-SOCKS-M",
+        "title": "Blue Socks",
+        "quantity": 1,
+        "unit_price_cents": 4999,
+        "currency": "USD",
+        "shippable": true
+      }
+    ],
+    "ord_003": [
+      {
+        "item_id": "item_003",
+        "sku": "SKU-GREEN-TEE-L",
+        "title": "Green Tee",
+        "quantity": 1,
+        "unit_price_cents": 7999,
+        "currency": "USD",
+        "shippable": true
+      }
     ]
   },
   "fulfillment_statuses": {
@@ -57,6 +119,22 @@
       "shipped": true,
       "delivered": true,
       "tracking_number": "1ZMOCK1234567890",
+      "carrier": "UPS"
+    },
+    "ord_002": {
+      "order_id": "ord_002",
+      "status": "pending",
+      "shipped": false,
+      "delivered": false,
+      "tracking_number": null,
+      "carrier": null
+    },
+    "ord_003": {
+      "order_id": "ord_003",
+      "status": "delivered",
+      "shipped": true,
+      "delivered": true,
+      "tracking_number": "1ZMOCK3333333333",
       "carrier": "UPS"
     }
   },
@@ -80,6 +158,19 @@
           "timestamp": "2026-02-20T19:12:00Z"
         }
       ]
+    },
+    "1ZMOCK3333333333": {
+      "tracking_number": "1ZMOCK3333333333",
+      "carrier": "UPS",
+      "events": [
+        {
+          "event_id": "trk_evt_301",
+          "status": "delivered",
+          "description": "Delivered mailbox",
+          "location": "San Francisco, CA",
+          "timestamp": "2026-02-18T18:20:00Z"
+        }
+      ]
     }
   },
   "delivery_proofs": {
@@ -90,6 +181,14 @@
       "proof_type": "photo",
       "delivered_at": "2026-02-20T19:12:00Z",
       "proof_reference": "proof_img_001"
+    },
+    "ord_003": {
+      "order_id": "ord_003",
+      "tracking_number": "1ZMOCK3333333333",
+      "available": false,
+      "proof_type": null,
+      "delivered_at": "2026-02-18T18:20:00Z",
+      "proof_reference": null
     }
   },
   "inventory": {
@@ -101,13 +200,24 @@
     "policy_versions": {
       "delivered_not_received": "v1_0_0",
       "order_status": "v1_0_0",
-      "cancel_order": "v1_0_0"
+      "cancel_order": "v1_0_0",
+      "return_initiation": "v1_0_0"
     },
     "policy_rules": {
       "v1_0_0": {
-        "allowed_actions": ["replacement_reship", "refund_partial", "refund_full", "escalate_human"],
+        "allowed_actions": [
+          "replacement_reship",
+          "refund_partial",
+          "refund_full",
+          "escalate_human"
+        ],
         "constraints": {
-          "refund_full": {"requires": ["delivery_proof", "risk_score"]}
+          "refund_full": {
+            "requires": [
+              "delivery_proof",
+              "risk_score"
+            ]
+          }
         }
       }
     },
