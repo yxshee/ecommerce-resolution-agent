@@ -1,5 +1,109 @@
 {
   "version": "v1_0_0",
-  "rules": [],
-  "phase": 0
+  "issue_rules": {
+    "order_status": {
+      "default": {
+        "name": "status_lookup",
+        "when": {},
+        "allowed_actions": ["escalate_human"],
+        "constraints": {
+          "response_only": true
+        },
+        "required_evidence": ["order", "fulfillment_status"],
+        "approval_required": false,
+        "approval_overrides": {},
+        "on_missing_evidence": "escalate_human"
+      },
+      "variants": []
+    },
+    "cancel_order": {
+      "default": {
+        "name": "fallback_escalate",
+        "when": {},
+        "allowed_actions": ["escalate_human"],
+        "constraints": {
+          "reason": "order_not_cancellable_post_shipment"
+        },
+        "required_evidence": ["order", "fulfillment_status"],
+        "approval_required": false,
+        "approval_overrides": {},
+        "on_missing_evidence": "escalate_human"
+      },
+      "variants": [
+        {
+          "name": "pre_shipment_cancel",
+          "when": {
+            "fact_in": {
+              "fulfillment_status": ["pending", "processing"]
+            }
+          },
+          "allowed_actions": ["cancel_order", "escalate_human"],
+          "constraints": {
+            "must_not_be_shipped": true
+          },
+          "required_evidence": ["order", "fulfillment_status"],
+          "approval_required": false,
+          "approval_overrides": {},
+          "on_missing_evidence": "escalate_human"
+        }
+      ]
+    },
+    "return_initiation": {
+      "default": {
+        "name": "standard_return_window",
+        "when": {},
+        "allowed_actions": ["return_initiation", "escalate_human"],
+        "constraints": {
+          "return_window_days": 30,
+          "requires_label": true
+        },
+        "required_evidence": ["order", "order_items", "item_id"],
+        "approval_required": false,
+        "approval_overrides": {},
+        "on_missing_evidence": "escalate_human"
+      },
+      "variants": []
+    },
+    "delivered_not_received": {
+      "default": {
+        "name": "dnr_standard",
+        "when": {},
+        "allowed_actions": ["replacement_reship", "refund_partial", "refund_full", "escalate_human"],
+        "constraints": {
+          "refund_full": {
+            "max_auto_percent": 50
+          },
+          "replacement_reship": {
+            "requires_stock": true
+          }
+        },
+        "required_evidence": ["tracking_events", "delivery_proof"],
+        "approval_required": false,
+        "approval_overrides": {
+          "order_total_cents_gte": 50000,
+          "cross_border": true,
+          "cash_on_delivery": true
+        },
+        "on_missing_evidence": "escalate_human"
+      },
+      "variants": [
+        {
+          "name": "weak_delivery_signal",
+          "when": {
+            "fact_equals": {
+              "delivery_proof_available": false
+            }
+          },
+          "allowed_actions": ["escalate_human"],
+          "constraints": {
+            "reason": "missing_delivery_proof_signal"
+          },
+          "required_evidence": ["tracking_events"],
+          "approval_required": false,
+          "approval_overrides": {},
+          "on_missing_evidence": "escalate_human"
+        }
+      ]
+    }
+  }
 }
