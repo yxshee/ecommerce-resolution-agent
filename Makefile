@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test test_integration format api help
+.PHONY: install lint typecheck test test_integration eval demo_delivered_not_received format api help
 
 install:
 	uv sync --dev
@@ -15,6 +15,12 @@ test:
 
 test_integration:
 	uv run pytest tests/integration
+
+eval:
+	uv run python scripts/run_eval.py --output artifacts/eval_summary.json
+
+demo_delivered_not_received:
+	./scripts/demo.sh
 
 format:
 	uv run ruff format .
