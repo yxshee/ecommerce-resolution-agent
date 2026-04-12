@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from ecom_resolution_agent.agents import DeterministicTriageAgent
+from ecom_resolution_agent.actions.caps import ActionCapsService
+from ecom_resolution_agent.agents import DeterministicRiskAgent, DeterministicTriageAgent
+from ecom_resolution_agent.approvals import ApprovalService
 from ecom_resolution_agent.orchestration import CaseState, EcommerceOrchestrator
 from ecom_resolution_agent.orchestration.nodes.common import OrchestrationDeps
 from ecom_resolution_agent.policy import PolicyService
@@ -21,6 +23,9 @@ def build_orchestrator() -> EcommerceOrchestrator:
         tool_executor=ToolExecutor(registry),
         policy_service=PolicyService(),
         triage_agent=DeterministicTriageAgent(),
+        risk_agent=DeterministicRiskAgent(),
+        approval_service=ApprovalService(),
+        caps_service=ActionCapsService(),
     )
     return EcommerceOrchestrator(deps)
 
@@ -78,9 +83,10 @@ def test_phase4_mvp_flows(
 
     result = orchestrator.run(state)
 
-    assert result.status == "policy_evaluated"
+    assert result.status == "risk_assessed"
     assert result.issue_type == expected_issue_type
     assert result.policy_output is not None
+    assert result.risk_output is not None
     assert expected_allowed_action in result.policy_output.allowed_actions
     assert result.verification_passed is True
     assert "get_order" in result.tool_results
