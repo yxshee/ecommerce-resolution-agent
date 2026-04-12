@@ -10,6 +10,7 @@ from ecom_resolution_agent.orchestration.nodes import (
     run_gather_facts,
     run_intake,
     run_policy_lookup,
+    run_risk_assessment,
     run_verify_identity,
 )
 from ecom_resolution_agent.orchestration.nodes.common import OrchestrationDeps
@@ -32,6 +33,10 @@ class EcommerceOrchestrator:
         builder.add_node("gather_facts", lambda state: run_gather_facts(state, self.deps))
         builder.add_node("classify_issue", lambda state: run_classify_issue(state, self.deps))
         builder.add_node("policy_lookup", lambda state: run_policy_lookup(state, self.deps))
+        builder.add_node(
+            "risk_assessment",
+            lambda state: run_risk_assessment(state, self.deps),
+        )
 
         builder.set_entry_point("intake")
 
@@ -40,6 +45,7 @@ class EcommerceOrchestrator:
             "gather_facts": "gather_facts",
             "classify_issue": "classify_issue",
             "policy_lookup": "policy_lookup",
+            "risk_assessment": "risk_assessment",
             END_ROUTE: END,
         }
         for node_name in [
@@ -48,6 +54,7 @@ class EcommerceOrchestrator:
             "gather_facts",
             "classify_issue",
             "policy_lookup",
+            "risk_assessment",
         ]:
             builder.add_conditional_edges(  # type: ignore[arg-type]
                 node_name,

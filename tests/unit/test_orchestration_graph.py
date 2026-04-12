@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ecom_resolution_agent.agents import DeterministicTriageAgent
+from ecom_resolution_agent.actions.caps import ActionCapsService
+from ecom_resolution_agent.agents import DeterministicRiskAgent, DeterministicTriageAgent
+from ecom_resolution_agent.approvals import ApprovalService
 from ecom_resolution_agent.orchestration import CaseState, EcommerceOrchestrator
 from ecom_resolution_agent.orchestration.nodes.common import OrchestrationDeps
 from ecom_resolution_agent.orchestration.state import END_ROUTE
@@ -20,6 +22,9 @@ def build_orchestrator() -> EcommerceOrchestrator:
         tool_executor=ToolExecutor(registry),
         policy_service=PolicyService(),
         triage_agent=DeterministicTriageAgent(),
+        risk_agent=DeterministicRiskAgent(),
+        approval_service=ApprovalService(),
+        caps_service=ActionCapsService(),
     )
     return EcommerceOrchestrator(deps)
 
@@ -63,8 +68,9 @@ def test_happy_path_reaches_policy_lookup() -> None:
 
     result = orchestrator.run(state)
 
-    assert result.status == "policy_evaluated"
+    assert result.status == "risk_assessed"
     assert result.issue_type == "order_status"
     assert result.policy_output is not None
+    assert result.risk_output is not None
     assert result.policy_version == "v1_0_0"
-    assert result.current_state == "policy_lookup"
+    assert result.current_state == "risk_assessment"
