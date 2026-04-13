@@ -16,3 +16,4 @@ dist/
 .env.local
 artifacts/
 .DS_Store
+.vercel
