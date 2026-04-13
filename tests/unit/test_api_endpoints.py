@@ -7,6 +7,17 @@ from fastapi.testclient import TestClient
 from ecom_resolution_agent.api.app import app
 
 
+def test_root_returns_service_metadata() -> None:
+    client = TestClient(app)
+    response = client.get("/")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["name"] == "ecommerce-resolution-agent"
+    assert payload["status"] == "ok"
+    assert payload["docs_url"] == "/docs"
+
+
 def test_healthz_returns_ok() -> None:
     client = TestClient(app)
     response = client.get("/healthz")
