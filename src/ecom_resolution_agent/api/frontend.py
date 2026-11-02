@@ -86,13 +86,14 @@ def render_dashboard_html() -> str:
       width: min(1200px, calc(100% - 2rem));
       margin: 1.25rem auto 2.5rem;
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
 
     .hero {
       display: grid;
       gap: 1rem;
-      grid-template-columns: 1.15fr 0.85fr;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
       padding: 1.1rem;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(12, 24, 33, 0.88), rgba(8, 18, 25, 0.8));
@@ -247,12 +248,13 @@ def render_dashboard_html() -> str:
 
     .layout {
       display: grid;
-      grid-template-columns: 1.08fr 0.92fr;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
       gap: 1rem;
     }
 
     .stack {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 1rem;
     }
 
@@ -611,7 +613,7 @@ def render_dashboard_html() -> str:
     @media (max-width: 1024px) {
       .hero,
       .layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
       }
     }
 

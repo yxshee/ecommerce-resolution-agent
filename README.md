@@ -13,8 +13,13 @@ Built to answer a question I think matters more than *"can an agent do this?"*: 
 | **Runs offline** | Mock tool adapters — no API keys, no network, fully deterministic |
 
 ```bash
-make install && make demo_delivered_not_received
+git clone https://github.com/yxshee/ecommerce-resolution-agent.git && cd ecommerce-resolution-agent
+make install && make demo_delivered_not_received   # needs Python 3.11+ and uv
 ```
+
+That prints the decision as JSON and writes a full report to `artifacts/runs/demo_delivered_not_received/report.md`. To click through it instead, start the dashboard with `make api` and open http://127.0.0.1:8000:
+
+![Dashboard: run the demo case or a mini evaluation from the browser](docs/dashboard.png)
 
 > **Read this first:** this repository is an agent **architecture and safety harness**, not a wrapper around a model API. Agent roles are implemented deterministically behind the LLM-facing interfaces so the entire system evaluates offline and reproducibly. See [Scope and honesty](#scope-and-honesty) — it is the first section I would want a reviewer to read.
 
@@ -114,7 +119,7 @@ Gate: PASS
 
 ## Running it
 
-Requires Python 3.11+ and [`uv`](https://docs.astral.sh/uv/).
+Requires Python 3.11+ and [`uv`](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
 
 ```bash
 make install
@@ -171,4 +176,4 @@ I would rather be precise about this than let a reviewer discover it by reading 
 
 ## License
 
-MIT
+[MIT](LICENSE)
