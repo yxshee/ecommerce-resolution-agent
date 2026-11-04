@@ -7,7 +7,7 @@ Built to answer a question I think matters more than *"can an agent do this?"*: 
 | | |
 |---|---|
 | **Orchestration** | LangGraph 1.0 — 6-node `StateGraph` with dynamic conditional routing |
-| **Scale** | 7,893 LOC source · 1,890 LOC tests · 82 passing tests across 22 files |
+| **Scale** | 7,922 LOC source · 1,963 LOC tests · 94 passing tests across 22 files |
 | **Evaluation** | 250-scenario offline harness with a CI regression gate |
 | **Safety** | Policy engine, risk scoring, action caps, idempotency, prompt-injection defense, PII redaction |
 | **Runs offline** | Mock tool adapters — no API keys, no network, fully deterministic |
@@ -16,6 +16,8 @@ Built to answer a question I think matters more than *"can an agent do this?"*: 
 git clone https://github.com/yxshee/ecommerce-resolution-agent.git && cd ecommerce-resolution-agent
 make install && make demo_delivered_not_received   # needs Python 3.11+ and uv
 ```
+
+Or try the dashboard without installing anything: **[live demo](https://ecommerce-resolution-agent.vercel.app)**.
 
 That prints the decision as JSON and writes a full report to `artifacts/runs/demo_delivered_not_received/report.md`. To click through it instead, start the dashboard with `make api` and open http://127.0.0.1:8000:
 

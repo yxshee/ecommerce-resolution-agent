@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ecommerce-resolution-agent"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simulation-first multi-agent system that resolves ecommerce support tickets under a deterministic policy engine, with risk scoring, approval gates and a regression-gated eval harness"
 readme = "README.md"
 requires-python = ">=3.11"
