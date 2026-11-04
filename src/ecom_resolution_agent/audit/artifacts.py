@@ -13,6 +13,9 @@ class RunArtifactWriter:
         self.base_dir = Path(base_dir)
 
     def run_dir(self, run_id: str) -> Path:
+        # A run id is one directory name: reject separators and dot segments.
+        if not run_id or run_id in {".", ".."} or Path(run_id).name != run_id or "\\" in run_id:
+            raise ValueError(f"invalid run_id: {run_id!r}")
         return self.base_dir / run_id
 
     def write(

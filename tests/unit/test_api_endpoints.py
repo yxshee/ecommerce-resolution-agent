@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from ecom_resolution_agent.api.app import app
@@ -76,7 +77,10 @@ def test_case_run_and_artifact_endpoints_round_trip() -> None:
     assert {"run_config.json", "redacted_audit.jsonl", "decision.json", "report.md"} <= files
 
 
-def test_eval_run_endpoint_supports_limited_run(tmp_path: Path) -> None:
+def test_eval_run_endpoint_supports_limited_run(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ECOM_ARTIFACTS_DIR", str(tmp_path))
     client = TestClient(app)
     response = client.post(
         "/v1/evals/run",
@@ -93,3 +97,65 @@ def test_eval_run_endpoint_supports_limited_run(tmp_path: Path) -> None:
     assert "metrics" in payload
     assert "gate" in payload
     assert Path(payload["results_path"]).exists()
+
+
+def test_eval_run_writes_artifacts_under_the_artifacts_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The dashboard sends only limit and write_artifacts (issue #16).
+    monkeypatch.setenv("ECOM_ARTIFACTS_DIR", str(tmp_path))
+    client = TestClient(app)
+    response = client.post("/v1/evals/run", json={"limit": 1, "write_artifacts": True})
+
+    assert response.status_code == 200
+    results_path = Path(response.json()["results_path"])
+    assert results_path.is_relative_to(tmp_path)
+    run_dirs = list((tmp_path / "eval_api" / "runs").iterdir())
+    assert len(run_dirs) == 1
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"output_dir": "../outside"},
+        {"output_dir": "/tmp/ecom-resolution-agent-outside"},
+        {"dataset_path": "/etc/hosts"},
+        {"thresholds_path": "../pyproject.toml"},
+    ],
+)
+def test_eval_run_rejects_paths_outside_allowed_dirs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, overrides: dict[str, str]
+) -> None:
+    artifacts = tmp_path / "artifacts"
+    monkeypatch.setenv("ECOM_ARTIFACTS_DIR", str(artifacts))
+    client = TestClient(app)
+    response = client.post("/v1/evals/run", json={"limit": 1, **overrides})
+
+    assert response.status_code == 400
+    assert not (tmp_path / "outside").exists()
+    assert not Path("/tmp/ecom-resolution-agent-outside").exists()
+
+
+def test_case_run_rejects_run_id_that_leaves_runs_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    artifacts = tmp_path / "artifacts"
+    monkeypatch.setenv("ECOM_ARTIFACTS_DIR", str(artifacts))
+    client = TestClient(app)
+    response = client.post(
+        "/v1/cases/run",
+        json={
+            "ticket": {
+                "ticket_id": "api_case_002",
+                "customer_id": "cus_001",
+                "order_id": "ord_001",
+                "customer_email": "alice@example.com",
+                "issue_type": "delivered_not_received",
+                "customer_message": "Delivered but not received",
+            },
+            "run_id": "../../escaped",
+        },
+    )
+
+    assert response.status_code == 422
+    assert not (tmp_path / "escaped").exists()

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi import Path as PathParam
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
@@ -22,17 +23,22 @@ from ecom_resolution_agent.eval import (
 )
 from ecom_resolution_agent.orchestration.pipeline import build_simulation_pipeline
 
+# Run ids become directory names, so keep them to one plain path segment.
+RUN_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+
 
 class CaseRunRequest(BaseModel):
     ticket: dict[str, Any]
     simulation: bool = True
-    run_id: str | None = None
+    run_id: str | None = Field(default=None, pattern=RUN_ID_PATTERN)
 
 
 class EvalRunRequest(BaseModel):
+    # Resolved inside the datasets directory.
     dataset_path: str = "datasets/scenarios_v1.jsonl"
     thresholds_path: str = "datasets/eval_thresholds.json"
-    output_dir: str = "artifacts/eval_api"
+    # Resolved inside the artifacts directory.
+    output_dir: str = "eval_api"
     limit: int | None = Field(default=None, ge=1)
     write_artifacts: bool = False
 
@@ -44,6 +50,29 @@ def _artifacts_root_dir() -> Path:
     if os.environ.get("VERCEL"):
         return Path("/tmp/ecom_resolution_agent/artifacts")
     return Path("artifacts")
+
+
+def _datasets_root_dir() -> Path:
+    return Path(os.environ.get("ECOM_DATASETS_DIR", "datasets"))
+
+
+def _resolve_inside(root: Path, requested: str, *, field: str) -> Path:
+    """Resolve a client-supplied path and refuse anything outside ``root``.
+
+    Relative paths are taken from the working directory first (so the
+    documented ``datasets/...`` defaults keep working) and then from ``root``.
+    """
+    root = root.resolve()
+    candidate = Path(requested)
+    options = [candidate] if candidate.is_absolute() else [candidate, root / candidate]
+    for option in options:
+        resolved = option.resolve()
+        if resolved.is_relative_to(root):
+            return resolved
+    raise HTTPException(
+        status_code=400,
+        detail=f"{field} must be inside {root.name}/",
+    )
 
 
 def create_app() -> FastAPI:
@@ -114,7 +143,9 @@ def create_app() -> FastAPI:
         }
 
     @app.get("/v1/cases/{run_id}", tags=["cases"])
-    def get_case(run_id: str) -> dict[str, Any]:
+    def get_case(
+        run_id: str = PathParam(pattern=RUN_ID_PATTERN),
+    ) -> dict[str, Any]:
         run_dir = _artifacts_root_dir() / "runs" / run_id
         if not run_dir.exists():
             raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
@@ -131,7 +162,9 @@ def create_app() -> FastAPI:
         }
 
     @app.get("/v1/cases/{run_id}/artifacts", tags=["cases"])
-    def get_case_artifacts(run_id: str) -> dict[str, Any]:
+    def get_case_artifacts(
+        run_id: str = PathParam(pattern=RUN_ID_PATTERN),
+    ) -> dict[str, Any]:
         run_dir = _artifacts_root_dir() / "runs" / run_id
         if not run_dir.exists():
             raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
@@ -171,21 +204,27 @@ def create_app() -> FastAPI:
 
     @app.post("/v1/evals/run", tags=["eval"])
     def run_eval(request: EvalRunRequest) -> dict[str, Any]:
-        dataset_path = Path(request.dataset_path)
-        thresholds_path = Path(request.thresholds_path)
-        if not dataset_path.exists():
-            raise HTTPException(status_code=404, detail=f"Dataset not found: {dataset_path}")
-        if not thresholds_path.exists():
-            raise HTTPException(status_code=404, detail=f"Thresholds not found: {thresholds_path}")
+        datasets_root = _datasets_root_dir()
+        dataset_path = _resolve_inside(datasets_root, request.dataset_path, field="dataset_path")
+        thresholds_path = _resolve_inside(
+            datasets_root, request.thresholds_path, field="thresholds_path"
+        )
+        output_dir = _resolve_inside(_artifacts_root_dir(), request.output_dir, field="output_dir")
+        if not dataset_path.is_file():
+            raise HTTPException(
+                status_code=404, detail=f"Dataset not found: {request.dataset_path}"
+            )
+        if not thresholds_path.is_file():
+            raise HTTPException(
+                status_code=404, detail=f"Thresholds not found: {request.thresholds_path}"
+            )
 
         scenarios = load_eval_scenarios(dataset_path)
         if request.limit is not None:
             scenarios = scenarios[: request.limit]
         harness = EvaluationHarness(
             EvaluationHarnessConfig(
-                artifact_base_dir=(Path(request.output_dir) / "runs")
-                if request.write_artifacts
-                else None
+                artifact_base_dir=(output_dir / "runs") if request.write_artifacts else None
             )
         )
         observations = [harness.run_scenario(scenario) for scenario in scenarios]
@@ -193,9 +232,6 @@ def create_app() -> FastAPI:
         thresholds = load_eval_thresholds(thresholds_path)
         failures = enforce_regression_thresholds(summary=summary, thresholds=thresholds)
 
-        output_dir = Path(request.output_dir)
-        if request.output_dir == "artifacts/eval_api" and os.environ.get("VERCEL"):
-            output_dir = Path("/tmp/ecom_resolution_agent/eval_api")
         output_dir.mkdir(parents=True, exist_ok=True)
         results_path = output_dir / "evaluation_results.json"
         payload = summary.to_json()
