@@ -10,6 +10,7 @@ from fastapi import Path as PathParam
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
+from ecom_resolution_agent import __version__
 from ecom_resolution_agent.api.frontend import render_dashboard_html
 from ecom_resolution_agent.audit import RunArtifactWriter
 from ecom_resolution_agent.config import get_settings
@@ -79,7 +80,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title="Ecommerce Resolution Agent API",
-        version="0.1.0",
+        version=__version__,
         docs_url="/docs",
         redoc_url="/redoc",
     )

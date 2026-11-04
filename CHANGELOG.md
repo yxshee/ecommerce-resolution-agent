@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.1 (2026-11-04)
+
+### Fixed
+
+- Running a mini evaluation from the deployed dashboard with "Write artifacts: yes" returned HTTP 500, because run folders were written under the read-only deployment directory. They now go under the artifacts directory, as the results file already did (#16).
+- The API used file paths taken from the request: `/v1/evals/run` read datasets and wrote results at any path a client sent, and `/v1/cases/run` accepted a `run_id` containing `..`. Datasets and thresholds now have to come from `datasets/`, output stays under the artifacts directory, and a run id must be a single name (#17).
+
+### Changed
+
+- `EvalRunRequest.output_dir` now defaults to `eval_api` and is resolved inside the artifacts directory (`ECOM_ARTIFACTS_DIR`). Callers that sent an absolute `output_dir` should set `ECOM_ARTIFACTS_DIR` instead.
+- The OpenAPI version now follows the package version.
+
 ## 0.1.0 (2026-11-02)
 
 First tagged release.
