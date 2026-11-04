@@ -238,3 +238,10 @@ def test_invariant_rejects_success_claim_without_matching_action_audit_event() -
             action_result=action_result,
             audit_events=[unrelated_event],
         )
+
+
+@pytest.mark.parametrize("run_id", ["", ".", "..", "../escaped", "a/b", "a\\b"])
+def test_artifact_writer_rejects_run_ids_that_are_not_one_name(tmp_path: Path, run_id: str) -> None:
+    writer = RunArtifactWriter(base_dir=tmp_path / "runs")
+    with pytest.raises(ValueError, match="invalid run_id"):
+        writer.run_dir(run_id)
